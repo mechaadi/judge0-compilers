@@ -1,0 +1,5 @@
+#!/bin/bash
+IMAGE=judge0/compilers:arm64
+cd ../tests
+echo "Running tests on image $IMAGE"
+docker run -it --rm -v $PWD:/tests -w /tests --privileged $IMAGE ./run $@
