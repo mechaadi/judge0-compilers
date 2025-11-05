@@ -1,4 +1,4 @@
-FROM judge0/compilers:1.4.0-slim
+FROM judge0/compilers:1.0.0-slim-aarch64
 
 # Python for ML
 RUN apt-get update && \
