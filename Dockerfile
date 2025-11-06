@@ -1,9 +1,4 @@
-FROM buildpack-deps:buster
-
-RUN set -xe && \
-    sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g' /etc/apt/sources.list && \
-    sed -i 's|security.debian.org/debian-security|archive.debian.org/debian-security|g' /etc/apt/sources.list && \
-    printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositories "true";\nAcquire::AllowDowngradeToInsecureRepositories "true";\n' > /etc/apt/apt.conf.d/99debian-archive
+FROM buildpack-deps:bullseye
 
 # Check for latest version here: https://gcc.gnu.org/releases.html, https://ftpmirror.gnu.org/gcc
 ENV GCC_VERSIONS="7.4.0 8.3.0 9.2.0"
@@ -139,7 +134,10 @@ RUN set -xe && \
       libncurses5 \
       libffi-dev \
       libnuma-dev \
-      llvm-7 && \
+      llvm-11 && \
+    ln -sf /usr/lib/llvm-11/bin/opt /usr/local/bin/opt && \
+    ln -sf /usr/lib/llvm-11/bin/llc /usr/local/bin/llc && \
+    ln -sf /usr/lib/llvm-11/bin/llvm-config /usr/local/bin/llvm-config && \
     rm -rf /var/lib/apt/lists/* && \
     ARCH="$(dpkg --print-architecture)" && \
     case "$ARCH" in \
@@ -167,7 +165,7 @@ RUN set -xe && \
       ./configure \
         --prefix=/usr/local/ghc-$VERSION && \
       mkdir -p /usr/local/ghc-$VERSION/lib/ghc-$VERSION/latex && \
-      PATH="/usr/lib/llvm-7/bin:$PATH" make -j$(nproc) install && \
+      PATH="/usr/lib/llvm-11/bin:$PATH" make -j$(nproc) install && \
       rm -rf /tmp/*; \
     done
 
@@ -201,6 +199,8 @@ RUN set -xe && \
       tar -xf /tmp/node-$VERSION.tar.gz -C /tmp/node-$VERSION --strip-components=1 && \
       rm /tmp/node-$VERSION.tar.gz && \
       cd /tmp/node-$VERSION && \
+      export PYTHON=/usr/local/python-2.7.17/bin/python2.7 && \
+      export PATH="/usr/local/python-2.7.17/bin:$PATH" && \
       ./configure \
         --prefix=/usr/local/node-$VERSION && \
       make -j$(nproc) && \
@@ -220,6 +220,8 @@ RUN set -xe && \
       tar -xf /tmp/erlang-$VERSION.tar.gz -C /tmp/erlang-$VERSION --strip-components=1 && \
       rm /tmp/erlang-$VERSION.tar.gz && \
       cd /tmp/erlang-$VERSION && \
+      export CC="gcc -fcommon" && \
+      export CFLAGS="${CFLAGS:--O2 -g} -fcommon" && \
       ./otp_build autoconf && \
       ./configure \
         --prefix=/usr/local/erlang-$VERSION && \
@@ -324,6 +326,8 @@ RUN set -xe && \
       tar -xf /tmp/ocaml-$VERSION.tar.gz -C /tmp/ocaml-$VERSION --strip-components=1 && \
       rm /tmp/ocaml-$VERSION.tar.gz && \
       cd /tmp/ocaml-$VERSION && \
+      export CC="gcc -fcommon" && \
+      export CFLAGS="$CFLAGS -fcommon" && \
       ./configure \
         -prefix /usr/local/ocaml-$VERSION \
         --disable-ocamldoc --disable-debugger && \
@@ -395,6 +399,7 @@ RUN set -xe && \
 
 # # Check for latest version here: https://nasm.us
 ENV NASM_VERSIONS="2.14.02"
+RUN set -xe apt-get install qemu-user 
 RUN set -xe && \
     for VERSION in $NASM_VERSIONS; do \
       curl -fSsL "https://www.nasm.us/pub/nasm/releasebuilds/$VERSION/nasm-$VERSION.tar.gz" -o /tmp/nasm-$VERSION.tar.gz && \
@@ -521,11 +526,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC 
 
 
-# # Check for latest version here: https://packages.debian.org/buster/clang-7
+# # Check for latest version here: https://packages.debian.org/search?keywords=clang
 # # Used for additional compilers for C, C++ and used for Objective-C.
 RUN set -xe && \
     apt-get update && \
-    apt-get install -y --no-install-recommends clang-7 gnustep-devel && \
+    apt-get install -y --no-install-recommends clang gnustep-devel && \
     rm -rf /var/lib/apt/lists/*
 
 # # Check for latest version here: https://cloud.r-project.org/src/base

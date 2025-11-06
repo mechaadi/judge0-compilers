@@ -1,11 +1,5 @@
 
-FROM buildpack-deps:buster
-
-RUN set -xe && \
-    sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g' /etc/apt/sources.list && \
-    sed -i 's|security.debian.org/debian-security|archive.debian.org/debian-security|g' /etc/apt/sources.list && \
-    printf 'Acquire::Check-Valid-Until "false";\nAcquire::AllowInsecureRepositories "true";\nAcquire::AllowDowngradeToInsecureRepositories "true";\n' > /etc/apt/apt.conf.d/99debian-archive
-
+FROM buildpack-deps:bullseye
 
 # Check for latest version here: https://www.ruby-lang.org/en/downloads
 ENV RUBY_VERSIONS="2.7.0"

@@ -1,5 +1,5 @@
 #!/bin/bash
-IMAGE=judge0/compilers:arm64
+IMAGE=mechaadi/judge0-compilers:1.0.0-aarch64
 cd tests
 echo "Running tests on image $IMAGE"
 docker run -it --rm -v $PWD:/tests -w /tests --privileged $IMAGE ./run $@
