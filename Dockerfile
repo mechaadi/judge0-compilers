@@ -1,12 +1,7 @@
-# Check for latest version here: https://hub.docker.com/_/buildpack-deps?tab=tags&page=1&name=buster&ordering=last_updated
-# This is just a snapshot of buildpack-deps:buster that was last updated on 2019-12-28.
-FROM judge0/buildpack-deps:buster-2019-12-28
+FROM buildpack-deps:bullseye
 
 # Check for latest version here: https://gcc.gnu.org/releases.html, https://ftpmirror.gnu.org/gcc
-ENV GCC_VERSIONS \
-      7.4.0 \
-      8.3.0 \
-      9.2.0
+ENV GCC_VERSIONS="7.4.0 8.3.0 9.2.0"
 RUN set -xe && \
     for VERSION in $GCC_VERSIONS; do \
       curl -fSsL "https://ftpmirror.gnu.org/gcc/gcc-$VERSION/gcc-$VERSION.tar.gz" -o /tmp/gcc-$VERSION.tar.gz && \
@@ -23,8 +18,10 @@ RUN set -xe && \
       else \
         ENABLE_FORTRAN=""; \
       fi; \
+      # libsanitizer fails to build against newer glibc shipped with Bullseye, so keep the core compiler build lean.
       /tmp/gcc-$VERSION/configure \
         --disable-multilib \
+        --disable-libsanitizer \
         --enable-languages=c,c++$ENABLE_FORTRAN \
         --prefix=/usr/local/gcc-$VERSION && \
       make -j$(nproc) && \
@@ -33,8 +30,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.ruby-lang.org/en/downloads
-ENV RUBY_VERSIONS \
-      2.7.0
+ENV RUBY_VERSIONS="2.7.0"
 RUN set -xe && \
     for VERSION in $RUBY_VERSIONS; do \
       curl -fSsL "https://cache.ruby-lang.org/pub/ruby/${VERSION%.*}/ruby-$VERSION.tar.gz" -o /tmp/ruby-$VERSION.tar.gz && \
@@ -51,9 +47,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.python.org/downloads
-ENV PYTHON_VERSIONS \
-      3.8.1 \
-      2.7.17
+ENV PYTHON_VERSIONS="3.8.1 2.7.17"
 RUN set -xe && \
     for VERSION in $PYTHON_VERSIONS; do \
       curl -fSsL "https://www.python.org/ftp/python/$VERSION/Python-$VERSION.tar.xz" -o /tmp/python-$VERSION.tar.xz && \
@@ -69,8 +63,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://ftp.gnu.org/gnu/octave
-ENV OCTAVE_VERSIONS \
-      5.1.0
+ENV OCTAVE_VERSIONS="5.1.0"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends gfortran libblas-dev liblapack-dev libpcre3-dev && \
@@ -99,8 +92,7 @@ RUN set -xe && \
     ln -s /usr/local/openjdk13/bin/jar /usr/local/bin/jar
 
 # Check for latest version here: https://ftpmirror.gnu.org/bash
-ENV BASH_VERSIONS \
-      5.0
+ENV BASH_VERSIONS="5.0"
 RUN set -xe && \
     for VERSION in $BASH_VERSIONS; do \
       curl -fSsL "https://ftpmirror.gnu.org/bash/bash-$VERSION.tar.gz" -o /tmp/bash-$VERSION.tar.gz && \
@@ -116,8 +108,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.freepascal.org/download.html
-ENV FPC_VERSIONS \
-      3.0.4
+ENV FPC_VERSIONS="3.0.4"
 RUN set -xe && \
     for VERSION in $FPC_VERSIONS; do \
       curl -fSsL "ftp://ftp.freepascal.org/fpc/dist/$VERSION/x86_64-linux/fpc-$VERSION.x86_64-linux.tar" -o /tmp/fpc-$VERSION.tar && \
@@ -130,8 +121,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.haskell.org/ghc/download.html
-ENV HASKELL_VERSIONS \
-      8.8.1
+ENV HASKELL_VERSIONS="8.8.1"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends libgmp-dev libtinfo5 && \
@@ -149,8 +139,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.mono-project.com/download/stable
-ENV MONO_VERSIONS \
-      6.6.0.161
+ENV MONO_VERSIONS="6.6.0.161"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends cmake && \
@@ -169,8 +158,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://nodejs.org/en
-ENV NODE_VERSIONS \
-      12.14.0
+ENV NODE_VERSIONS="12.14.0"
 RUN set -xe && \
     for VERSION in $NODE_VERSIONS; do \
       curl -fSsL "https://nodejs.org/dist/v$VERSION/node-v$VERSION.tar.gz" -o /tmp/node-$VERSION.tar.gz && \
@@ -186,8 +174,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://github.com/erlang/otp/releases
-ENV ERLANG_VERSIONS \
-      22.2
+ENV ERLANG_VERSIONS="22.2"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends unzip && \
@@ -208,8 +195,7 @@ RUN set -xe && \
     ln -s /usr/local/erlang-22.2/bin/erl /usr/local/bin/erl
 
 # Check for latest version here: https://github.com/elixir-lang/elixir/releases
-ENV ELIXIR_VERSIONS \
-      1.9.4
+ENV ELIXIR_VERSIONS="1.9.4"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends unzip && \
@@ -221,8 +207,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.rust-lang.org
-ENV RUST_VERSIONS \
-      1.40.0
+ENV RUST_VERSIONS="1.40.0"
 RUN set -xe && \
     for VERSION in $RUST_VERSIONS; do \
       curl -fSsL "https://static.rust-lang.org/dist/rust-$VERSION-x86_64-unknown-linux-gnu.tar.gz" -o /tmp/rust-$VERSION.tar.gz && \
@@ -237,8 +222,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://golang.org/dl
-ENV GO_VERSIONS \
-      1.13.5
+ENV GO_VERSIONS="1.13.5"
 RUN set -xe && \
     for VERSION in $GO_VERSIONS; do \
       curl -fSsL "https://storage.googleapis.com/golang/go$VERSION.linux-amd64.tar.gz" -o /tmp/go-$VERSION.tar.gz && \
@@ -248,8 +232,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://sourceforge.net/projects/fbc/files/Binaries%20-%20Linux
-ENV FBC_VERSIONS \
-      1.07.1
+ENV FBC_VERSIONS="1.07.1"
 RUN set -xe && \
     for VERSION in $FBC_VERSIONS; do \
       curl -fSsL "https://downloads.sourceforge.net/project/fbc/Binaries%20-%20Linux/FreeBASIC-$VERSION-linux-x86_64.tar.gz" -o /tmp/fbc-$VERSION.tar.gz && \
@@ -259,8 +242,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://github.com/ocaml/ocaml/releases
-ENV OCAML_VERSIONS \
-      4.09.0
+ENV OCAML_VERSIONS="4.09.0"
 RUN set -xe && \
     for VERSION in $OCAML_VERSIONS; do \
       curl -fSsL "https://github.com/ocaml/ocaml/archive/$VERSION.tar.gz" -o /tmp/ocaml-$VERSION.tar.gz && \
@@ -277,8 +259,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.php.net/downloads
-ENV PHP_VERSIONS \
-      7.4.1
+ENV PHP_VERSIONS="7.4.1"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends bison re2c && \
@@ -298,8 +279,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://dlang.org/download.html#dmd
-ENV D_VERSIONS \
-      2.089.1
+ENV D_VERSIONS="2.089.1"
 RUN set -xe && \
     for VERSION in $D_VERSIONS; do \
       curl -fSsL "http://downloads.dlang.org/releases/2.x/$VERSION/dmd.$VERSION.linux.tar.xz" -o /tmp/d-$VERSION.tar.gz && \
@@ -310,8 +290,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://www.lua.org/download.html
-ENV LUA_VERSIONS \
-      5.3.5
+ENV LUA_VERSIONS="5.3.5"
 RUN set -xe && \
     for VERSION in $LUA_VERSIONS; do \
       curl -fSsL "https://downloads.sourceforge.net/project/luabinaries/$VERSION/Tools%20Executables/lua-${VERSION}_Linux44_64_bin.tar.gz" -o /tmp/lua-$VERSION.tar.gz && \
@@ -322,8 +301,7 @@ RUN set -xe && \
     ln -s /lib/x86_64-linux-gnu/libreadline.so.7 /lib/x86_64-linux-gnu/libreadline.so.6
 
 # Check for latest version here: https://github.com/microsoft/TypeScript/releases
-ENV TYPESCRIPT_VERSIONS \
-      3.7.4
+ENV TYPESCRIPT_VERSIONS="3.7.4"
 RUN set -xe && \
     curl -fSsL "https://deb.nodesource.com/setup_12.x" | bash - && \
     apt-get update && \
@@ -334,8 +312,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://nasm.us
-ENV NASM_VERSIONS \
-      2.14.02
+ENV NASM_VERSIONS="2.14.02"
 RUN set -xe && \
     for VERSION in $NASM_VERSIONS; do \
       curl -fSsL "https://www.nasm.us/pub/nasm/releasebuilds/$VERSION/nasm-$VERSION.tar.gz" -o /tmp/nasm-$VERSION.tar.gz && \
@@ -354,8 +331,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: http://gprolog.org/#download
-ENV GPROLOG_VERSIONS \
-      1.4.5
+ENV GPROLOG_VERSIONS="1.4.5"
 RUN set -xe && \
     for VERSION in $GPROLOG_VERSIONS; do \
       curl -fSsL "http://gprolog.org/gprolog-$VERSION.tar.gz" -o /tmp/gprolog-$VERSION.tar.gz && \
@@ -371,8 +347,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: http://www.sbcl.org/platform-table.html
-ENV SBCL_VERSIONS \
-      2.0.0
+ENV SBCL_VERSIONS="2.0.0"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends bison re2c && \
@@ -388,8 +363,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://ftp.gnu.org/gnu/gnucobol
-ENV COBOL_VERSIONS \
-      2.2
+ENV COBOL_VERSIONS="2.2"
 RUN set -xe && \
     for VERSION in $COBOL_VERSIONS; do \
       curl -fSsL "https://ftp.gnu.org/gnu/gnucobol/gnucobol-$VERSION.tar.xz" -o /tmp/gnucobol-$VERSION.tar.xz && \
@@ -405,8 +379,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://swift.org/download
-ENV SWIFT_VERSIONS \
-      5.2.3
+ENV SWIFT_VERSIONS="5.2.3"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends libncurses5 && \
@@ -419,8 +392,7 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://kotlinlang.org
-ENV KOTLIN_VERSIONS \
-      1.3.70
+ENV KOTLIN_VERSIONS="1.3.70"
 RUN set -xe && \
     for VERSION in $KOTLIN_VERSIONS; do \
       curl -fSsL "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip" -o /tmp/kotlin-$VERSION.zip && \
@@ -434,7 +406,7 @@ RUN set -xe && \
 # I currently use this to add support for Visual Basic.Net but this can be also
 # used to support C# language which has been already supported but with manual
 # installation of Mono (see above).
-ENV MONO_VERSION 6.6.0.161
+ENV MONO_VERSION=6.6.0.161
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends gnupg dirmngr && \
@@ -459,8 +431,7 @@ RUN set -xe && \
     rm -rf /var/lib/apt/lists/*
 
 # Check for latest version here: https://cloud.r-project.org/src/base
-ENV R_VERSIONS \
-      4.0.0
+ENV R_VERSIONS="4.0.0"
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends libpcre2-dev && \
@@ -486,8 +457,7 @@ RUN set -xe && \
     rm -rf /var/lib/apt/lists/*
 
 # Check for latest version here: https://scala-lang.org
-ENV SCALA_VERSIONS \
-      2.13.2
+ENV SCALA_VERSIONS="2.13.2"
 RUN set -xe && \
     for VERSION in $SCALA_VERSIONS; do \
       curl -fSsL "https://downloads.lightbend.com/scala/$VERSION/scala-$VERSION.tgz" -o /tmp/scala-$VERSION.tgz && \
@@ -499,7 +469,7 @@ RUN set -xe && \
 # Support for Perl came "for free" since it is already installed.
 
 # Check for latest version here: https://github.com/clojure/clojure/releases
-ENV CLOJURE_VERSION 1.10.1
+ENV CLOJURE_VERSION=1.10.1
 RUN set -xe && \
     apt-get update && \
     apt-get install -y --no-install-recommends maven && \
@@ -543,7 +513,7 @@ RUN set -xe && \
     git checkout ad39cc4d0fbb577fb545910095c9da5ef8fc9a1a && \
     make -j$(nproc) install && \
     rm -rf /tmp/*
-ENV BOX_ROOT /var/local/lib/isolate
+ENV BOX_ROOT=/var/local/lib/isolate
 
 LABEL maintainer="Herman Zvonimir Došilović <hermanz.dosilovic@gmail.com>"
 LABEL version="1.4.0"
