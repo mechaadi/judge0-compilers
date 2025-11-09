@@ -111,7 +111,7 @@ RUN set -xe && \
 ENV FPC_VERSIONS="3.0.4"
 RUN set -xe && \
     for VERSION in $FPC_VERSIONS; do \
-      curl -fSsL "ftp://ftp.freepascal.org/fpc/dist/$VERSION/x86_64-linux/fpc-$VERSION.x86_64-linux.tar" -o /tmp/fpc-$VERSION.tar && \
+      curl -fSsL "https://master.dl.sourceforge.net/project/freepascal/Linux/$VERSION/fpc-$VERSION.x86_64-linux.tar?viasf=1" -o /tmp/fpc-$VERSION.tar && \
       mkdir /tmp/fpc-$VERSION && \
       tar -xf /tmp/fpc-$VERSION.tar -C /tmp/fpc-$VERSION --strip-components=1 && \
       rm /tmp/fpc-$VERSION.tar && \
@@ -134,6 +134,7 @@ RUN set -xe && \
       cd /tmp/ghc-$VERSION && \
       ./configure \
         --prefix=/usr/local/ghc-$VERSION && \
+      mkdir -p /usr/local/ghc-$VERSION/lib/ghc-$VERSION/latex && \
       make -j$(nproc) install && \
       rm -rf /tmp/*; \
     done
@@ -150,6 +151,8 @@ RUN set -xe && \
       tar -xf /tmp/mono-$VERSION.tar.xz -C /tmp/mono-$VERSION --strip-components=1 && \
       rm /tmp/mono-$VERSION.tar.xz && \
       cd /tmp/mono-$VERSION && \
+      export PYTHON=/usr/local/python-2.7.17/bin/python2.7 && \
+      export PATH="/usr/local/python-2.7.17/bin:$PATH" && \
       ./configure \
         --prefix=/usr/local/mono-$VERSION && \
       make -j$(nproc) && \
@@ -166,6 +169,8 @@ RUN set -xe && \
       tar -xf /tmp/node-$VERSION.tar.gz -C /tmp/node-$VERSION --strip-components=1 && \
       rm /tmp/node-$VERSION.tar.gz && \
       cd /tmp/node-$VERSION && \
+      export PYTHON=/usr/local/python-2.7.17/bin/python2.7 && \
+      export PATH="/usr/local/python-2.7.17/bin:$PATH" && \
       ./configure \
         --prefix=/usr/local/node-$VERSION && \
       make -j$(nproc) && \
@@ -173,7 +178,6 @@ RUN set -xe && \
       rm -rf /tmp/*; \
     done
 
-# Check for latest version here: https://github.com/erlang/otp/releases
 ENV ERLANG_VERSIONS="22.2"
 RUN set -xe && \
     apt-get update && \
@@ -185,6 +189,8 @@ RUN set -xe && \
       tar -xf /tmp/erlang-$VERSION.tar.gz -C /tmp/erlang-$VERSION --strip-components=1 && \
       rm /tmp/erlang-$VERSION.tar.gz && \
       cd /tmp/erlang-$VERSION && \
+      export CC="gcc -fcommon" && \
+      export CFLAGS="${CFLAGS:--O2 -g} -fcommon" && \
       ./otp_build autoconf && \
       ./configure \
         --prefix=/usr/local/erlang-$VERSION && \
@@ -194,7 +200,7 @@ RUN set -xe && \
     done; \
     ln -s /usr/local/erlang-22.2/bin/erl /usr/local/bin/erl
 
-# Check for latest version here: https://github.com/elixir-lang/elixir/releases
+# # Check for latest version here: https://github.com/elixir-lang/elixir/releases
 ENV ELIXIR_VERSIONS="1.9.4"
 RUN set -xe && \
     apt-get update && \
@@ -232,10 +238,10 @@ RUN set -xe && \
     done
 
 # Check for latest version here: https://sourceforge.net/projects/fbc/files/Binaries%20-%20Linux
-ENV FBC_VERSIONS="1.07.1"
+ENV FBC_VERSIONS="1.07.3"
 RUN set -xe && \
     for VERSION in $FBC_VERSIONS; do \
-      curl -fSsL "https://downloads.sourceforge.net/project/fbc/Binaries%20-%20Linux/FreeBASIC-$VERSION-linux-x86_64.tar.gz" -o /tmp/fbc-$VERSION.tar.gz && \
+      curl -fSsL "https://sourceforge.net/projects/fbc/files/FreeBASIC-$VERSION/Binaries-Linux/FreeBASIC-$VERSION-linux-x86_64.tar.xz/download" -o /tmp/fbc-$VERSION.tar.gz && \
       mkdir /usr/local/fbc-$VERSION && \
       tar -xf /tmp/fbc-$VERSION.tar.gz -C /usr/local/fbc-$VERSION --strip-components=1 && \
       rm -rf /tmp/*; \
@@ -250,6 +256,8 @@ RUN set -xe && \
       tar -xf /tmp/ocaml-$VERSION.tar.gz -C /tmp/ocaml-$VERSION --strip-components=1 && \
       rm /tmp/ocaml-$VERSION.tar.gz && \
       cd /tmp/ocaml-$VERSION && \
+      export CC="gcc -fcommon" && \
+      export CFLAGS="$CFLAGS -fcommon" && \
       ./configure \
         -prefix /usr/local/ocaml-$VERSION \
         --disable-ocamldoc --disable-debugger && \
@@ -293,12 +301,15 @@ RUN set -xe && \
 ENV LUA_VERSIONS="5.3.5"
 RUN set -xe && \
     for VERSION in $LUA_VERSIONS; do \
-      curl -fSsL "https://downloads.sourceforge.net/project/luabinaries/$VERSION/Tools%20Executables/lua-${VERSION}_Linux44_64_bin.tar.gz" -o /tmp/lua-$VERSION.tar.gz && \
-      mkdir /usr/local/lua-$VERSION && \
-      tar -xf /tmp/lua-$VERSION.tar.gz -C /usr/local/lua-$VERSION && \
+      curl -fSsL "https://www.lua.org/ftp/lua-$VERSION.tar.gz" -o /tmp/lua-$VERSION.tar.gz && \
+      mkdir /tmp/lua-$VERSION && \
+      tar -xf /tmp/lua-$VERSION.tar.gz -C /tmp/lua-$VERSION --strip-components=1 && \
+      rm /tmp/lua-$VERSION.tar.gz && \
+      cd /tmp/lua-$VERSION && \
+      make linux && \
+      make INSTALL_TOP=/usr/local/lua-$VERSION install && \
       rm -rf /tmp/*; \
-    done; \
-    ln -s /lib/x86_64-linux-gnu/libreadline.so.7 /lib/x86_64-linux-gnu/libreadline.so.6
+    done
 
 # Check for latest version here: https://github.com/microsoft/TypeScript/releases
 ENV TYPESCRIPT_VERSIONS="3.7.4"
@@ -331,10 +342,10 @@ RUN set -xe && \
     done
 
 # Check for latest version here: http://gprolog.org/#download
-ENV GPROLOG_VERSIONS="1.4.5"
+ENV GPROLOG_VERSIONS="1.5.0"
 RUN set -xe && \
     for VERSION in $GPROLOG_VERSIONS; do \
-      curl -fSsL "http://gprolog.org/gprolog-$VERSION.tar.gz" -o /tmp/gprolog-$VERSION.tar.gz && \
+      curl -fSsL "https://ftp.gnu.org/gnu/gprolog/gprolog-$VERSION.tar.gz" -o /tmp/gprolog-$VERSION.tar.gz && \
       mkdir /tmp/gprolog-$VERSION && \
       tar -xf /tmp/gprolog-$VERSION.tar.gz -C /tmp/gprolog-$VERSION --strip-components=1 && \
       rm /tmp/gprolog-$VERSION.tar.gz && \
@@ -427,7 +438,7 @@ RUN set -xe && \
 # Used for additional compilers for C, C++ and used for Objective-C.
 RUN set -xe && \
     apt-get update && \
-    apt-get install -y --no-install-recommends clang-7 gnustep-devel && \
+    apt-get install -y --no-install-recommends clang-11 gnustep-devel && \
     rm -rf /var/lib/apt/lists/*
 
 # Check for latest version here: https://cloud.r-project.org/src/base
@@ -492,7 +503,7 @@ RUN set -xe && \
 
 # Check for latest version here: https://groovy.apache.org/download.html
 RUN set -xe && \
-    curl -fSsL "https://dl.bintray.com/groovy/maven/apache-groovy-binary-3.0.3.zip" -o /tmp/groovy.zip && \
+    curl -fSsL "https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-3.0.3.zip" -o /tmp/groovy.zip && \
     unzip /tmp/groovy.zip -d /usr/local && \
     rm -rf /tmp/*
 
@@ -516,4 +527,4 @@ RUN set -xe && \
 ENV BOX_ROOT=/var/local/lib/isolate
 
 LABEL maintainer="Herman Zvonimir Došilović <hermanz.dosilovic@gmail.com>"
-LABEL version="1.4.0"
+LABEL version="1.4.1"
